@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JavaScript Projekt – TAK25</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --panel: #16161d;
+      --border: #2a2a38;
+      --accent: #7c6eff;
+      --accent2: #ff6eb4;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --radius: 12px;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Syne', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── LAYOUT ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0;
+    }
+    .sidebar-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+    .sidebar-title span { color: var(--text); }
+    .sidebar-nav { padding: 12px 0; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .18s;
+      border-left: 3px solid transparent;
+      font-size: 13px;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(124,110,255,.08); }
+    .nav-num {
+      background: var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-item.active .nav-num { background: var(--accent); color: #fff; }
+
+    /* ── MAIN ── */
+    .main { flex: 1; padding: 40px; max-width: 780px; }
+
+    /* ── HEADER ── */
+    .project-header {
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .project-header h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+    }
+    .project-header h1 span { color: var(--accent); }
+    .project-header p { color: var(--muted); margin-top: 8px; }
+
+    /* ── TASK CARD ── */
+    .task { display: none; animation: fadeIn .25s ease; }
+    .task.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .task-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .task-num-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 20px;
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .task-title-block h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .task-title-block p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    /* ── DEMO BOX ── */
+    .demo {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    /* ── INPUTS / BUTTONS ── */
+    input[type=text], input[type=number], input[type=email],
+    input[type=password], select, textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color .18s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    select { cursor: pointer; }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .05em; text-transform: uppercase; }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--red); }
+    .btn-green { background: var(--green); color: #000; }
+
+    /* ── RESULT BOX ── */
+    .result {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result.ok { border-color: var(--green); color: var(--green); background: rgba(74,222,128,.07); }
+    .result.err { border-color: var(--red); color: var(--red); background: rgba(248,113,113,.07); }
+    .result.info { border-color: var(--accent); color: var(--accent); background: rgba(124,110,255,.07); }
+    .result.warn { border-color: var(--yellow); color: var(--yellow); background: rgba(251,191,36,.07); }
+
+    /* ── ROW ── */
+    .row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    .row .field { flex: 1; min-width: 100px; }
+
+    /* ── STRENGTH BAR ── */
+    .strength-bar { height: 6px; border-radius: 3px; background: var(--border); margin-top: 10px; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 3px; transition: width .4s, background .4s; width: 0; }
+
+    .checks { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .check-item.pass { color: var(--green); }
+    .check-icon { font-size: 15px; }
+
+    /* ── GALLERY ── */
+    .gallery-main { width: 100%; height: 220px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border); transition: all .3s; }
+    .gallery-thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .thumb {
+      width: 72px; height: 52px; border-radius: 7px; border: 2px solid var(--border);
+      cursor: pointer; object-fit: cover; transition: border-color .18s, transform .18s;
+      background: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: var(--muted);
+    }
+    .thumb:hover, .thumb.active { border-color: var(--accent); transform: scale(1.06); }
+
+    /* ── THEME SWITCHER ── */
+    .theme-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .theme-btn {
+      padding: 8px 16px; border-radius: 8px; border: 2px solid var(--border);
+      cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+      transition: all .2s; background: var(--bg); color: var(--text);
+    }
+    .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-btn.selected { border-color: var(--accent); background: rgba(124,110,255,.15); color: var(--accent); }
+    .color-row { display: flex; gap: 8px; }
+    .color-swatch {
+      width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+      border: 3px solid transparent; transition: transform .15s, border-color .15s;
+    }
+    .color-swatch:hover, .color-swatch.selected { border-color: var(--text); transform: scale(1.15); }
+
+    /* ── TODO ── */
+    .todo-input-row { display: flex; gap: 10px; }
+    .todo-input-row input { flex: 1; }
+    .todo-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .todo-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; transition: opacity .2s;
+    }
+    .todo-item.done { opacity: .5; }
+    .todo-item.done .todo-text { text-decoration: line-through; color: var(--muted); }
+    .todo-text { flex: 1; }
+    .todo-check { cursor: pointer; font-size: 18px; }
+    .todo-del { background: none; border: none; color: var(--red); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+    .todo-del:hover { background: rgba(248,113,113,.12); }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.03); }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+    }
+    .badge-5 { background: rgba(74,222,128,.15); color: var(--green); }
+    .badge-4 { background: rgba(251,191,36,.15); color: var(--yellow); }
+    .badge-3 { background: rgba(248,113,113,.15); color: var(--red); }
+
+    /* ── WEATHER ── */
+    .weather-card {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px;
+      text-align: center; margin-top: 16px; display: none;
+    }
+    .weather-card.show { display: block; animation: fadeIn .3s ease; }
+    .weather-temp { font-family: var(--font-display); font-size: 52px; font-weight: 800; }
+    .weather-city { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .weather-cond { font-size: 15px; margin-top: 8px; }
+    .weather-icon { font-size: 48px; margin-bottom: 8px; }
+
+    /* ── AJAX / PRODUCTS ── */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-top: 14px; }
+    .product-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; transition: border-color .18s;
+    }
+    .product-card:hover { border-color: var(--accent); }
+    .product-icon { font-size: 28px; margin-bottom: 8px; }
+    .product-name { font-weight: 700; font-size: 13px; }
+    .product-cat { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .product-price { color: var(--accent); font-weight: 700; margin-top: 8px; }
+
+    /* ── SEARCH ── */
+    .search-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .search-controls input, .search-controls select { flex: 1; min-width: 130px; }
+    .film-list { display: flex; flex-direction: column; gap: 8px; }
+    .film-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px;
+    }
+    .film-name { font-weight: 700; }
+    .film-meta { display: flex; gap: 10px; align-items: center; }
+    .film-cat { font-size: 11px; color: var(--muted); }
+    .film-rating { color: var(--yellow); font-size: 12px; font-weight: 700; }
+    .no-results { text-align: center; color: var(--muted); padding: 28px; }
+
+    /* ── JQUERY COMPARE ── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .compare-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .compare-panel h3 { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+    .compare-panel h3 span { color: var(--accent); }
+    #vanilla-box, #jquery-box {
+      background: rgba(124,110,255,.1); border-radius: 8px; padding: 14px;
+      margin: 12px 0; font-size: 13px; transition: all .3s;
+    }
+    .code-snippet {
+      background: rgba(0,0,0,.4); border-radius: 6px; padding: 10px 12px;
+      font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.7;
+      border: 1px solid var(--border);
+    }
+
+    /* ── FINAL PROJECT ── */
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .tab {
+      padding: 10px 20px; font-size: 13px; cursor: pointer;
+      color: var(--muted); border-bottom: 2px solid transparent;
+      transition: all .18s; font-family: var(--font-mono);
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn .2s; }
+
+    .stat-row { display: flex; gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      flex: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; text-align: center;
+    }
+    .stat-val { font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+
+    .student-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .student-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 800; font-size: 14px; flex-shrink: 0;
+    }
+    .student-name { flex: 1; font-weight: 700; }
+    .grade-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .g5 { background: rgba(74,222,128,.15); color: var(--green); }
+    .g4 { background: rgba(251,191,36,.15); color: var(--yellow); }
+    .g3 { background: rgba(248,113,113,.15); color: var(--red); }
+    .g2 { background: rgba(248,113,113,.2); color: var(--red); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── LIGHT THEME ── */
+    body.light {
+      --bg: #f5f5f7;
+      --panel: #ffffff;
+      --border: #e2e2ea;
+      --text: #1a1a2e;
+      --muted: #8888a0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-title"><span>JS</span> Projekt<br>TAK25</div>
+    <div class="sidebar-nav" id="sidebarNav">
+      <!-- Filled by JS -->
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="project-header">
+      <h1>JavaScript <span>Ülesanded</span></h1>
+      <p>TAK25 · Kõik 13 ülesannet ühes projektis</p>
+    </div>
+
+    <!-- ─── ÜLESANNE 1 ─── -->
+    <section class="task active" id="task1">
+      <div class="task-header">
+        <div class="task-num-badge">1</div>
+        <div class="task-title-block">
+          <h2>Tere, JavaScript!</h2>
+          <p>Nupud ja sündmused – onclick, querySelector, teksti muutmine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="field">
+          <label>Sinu nimi</label>
+          <input type="text" id="t1name" placeholder="Kirjuta oma nimi…" />
+        </div>
+        <button class="btn" onclick="tervita()">🖐 Tervita</button>
+        <div class="result" id="t1result"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 2 ─── -->
+    <section class="task" id="task2">
+      <div class="task-header">
+        <div class="task-num-badge">2</div>
+        <div class="task-title-block">
+          <h2>Lihtne kalkulaator</h2>
+          <p>Andmetüübid, operaatorid, Number(), veakontroll</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="row">
+          <div class="field"><label>Esimene arv</label><input type="number" id="t2a" placeholder="0" /></div>
+          <div class="field"><label>Teine arv</label><input type="number" id="t2b" placeholder="0" /></div>
+        </div>
+        <div class="field">
+          <label>Tehte</label>
+          <select id="t2op">
+            <option value="+">➕ Liitmine</option>
+            <option value="-">➖ Lahutamine</option>
+            <option value="*">✖️ Korrutamine</option>
+            <option value="/">➗ Jagamine</option>
+          </select>
+        </div>
+        <button class="btn" onclick="arvuta()">= Arvuta</button>
+        <div class="result" id="t2result"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 3 ─── -->
+    <section class="task" id="task3">
+      <div class="task-header">
+        <div class="task-num-badge">3</div>
+        <div class="task-title-block">
+          <h2>Parooli tugevuse kontrollija</h2>
+          <p>if, stringid, valideerimine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="field">
+          <label>Parool</label>
+          <input type="password" id="t3pass" placeholder="Sisesta parool…" oninput="kontrolliParool()" />
+          <div class="strength-bar"><div class="strength-fill" id="t3bar"></div></div>
+        </div>
+        <div class="checks" id="t3checks">
+          <div class="check-item" id="c_len"><span class="check-icon">○</span> Vähemalt 8 märki</div>
+          <div class="check-item" id="c_num"><span class="check-icon">○</span> Sisaldab numbrit</div>
+          <div class="check-item" id="c_upper"><span class="check-icon">○</span> Sisaldab suurtähte</div>
+          <div class="check-item" id="c_special"><span class="check-icon">○</span> Sisaldab erimärki</div>
+        </div>
+        <div class="result show info" id="t3result">Kirjuta parool, et näha tugevust.</div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 4 ─── -->
+    <section class="task" id="task4">
+      <div class="task-header">
+        <div class="task-num-badge">4</div>
+        <div class="task-title-block">
+          <h2>Registreerimisvorm</h2>
+          <p>Realistlik vormi valideerimine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="row">
+          <div class="field"><label>Nimi</label><input type="text" id="r_nimi" placeholder="Mari Maasikas" /></div>
+          <div class="field"><label>Vanus</label><input type="number" id="r_vanus" placeholder="16" /></div>
+        </div>
+        <div class="field"><label>E-post</label><input type="email" id="r_email" placeholder="mari@näide.ee" /></div>
+        <div class="field"><label>Parool</label><input type="password" id="r_parool" placeholder="Vähemalt 8 märki" /></div>
+        <div class="field"><label>Korda parooli</label><input type="password" id="r_parool2" placeholder="Sama parool uuesti" /></div>
+        <button class="btn" onclick="registreeri()">✅ Registreeru</button>
+        <div class="result" id="t4result"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 5 ─── -->
+    <section class="task" id="task5">
+      <div class="task-header">
+        <div class="task-num-badge">5</div>
+        <div class="task-title-block">
+          <h2>Pildigalerii</h2>
+          <p>src muutmine, sündmused, DOM</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div id="mainImgWrap" style="text-align:center;">
+          <div id="mainImg" style="
+            width:100%;height:220px;border-radius:10px;border:2px solid var(--border);
+            display:flex;align-items:center;justify-content:center;
+            font-size:72px;background:linear-gradient(135deg,#1a1a2e,#16213e);
+            transition:all .4s;
+          ">🌄</div>
+        </div>
+        <div id="imgCaption" style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px;">Mägivaade</div>
+        <div class="gallery-thumbs" id="thumbs"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;">
+          <button class="btn btn-ghost btn-sm" onclick="prevPilt()">← Eelmine</button>
+          <button class="btn btn-sm" onclick="nextPilt()">Järgmine →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 6 ─── -->
+    <section class="task" id="task6">
+      <div class="task-header">
+        <div class="task-num-badge">6</div>
+        <div class="task-title-block">
+          <h2>Taustavärvi ja kujunduse muutja</h2>
+          <p>CSS klasside muutmine, classList, localStorage</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="field">
+          <label>Kujundus</label>
+          <div class="theme-options">
+            <div class="theme-btn selected" id="tb_dark" onclick="setTheme('dark')">🌙 Tume</div>
+            <div class="theme-btn" id="tb_light" onclick="setTheme('light')">☀️ Hele</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Taustavärv</label>
+          <div class="color-row" id="colorRow"></div>
+        </div>
+        <div class="field">
+          <label>Fondi suurus: <span id="fontSizeLabel">14px</span></label>
+          <input type="range" id="fontSlider" min="12" max="20" value="14"
+            style="width:100%;accent-color:var(--accent);cursor:pointer;"
+            oninput="setFontSize(this.value)" />
+        </div>
+        <div class="result show info" id="t6status">Seaded salvestatud localStorage-isse ✓</div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 7 ─── -->
+    <section class="task" id="task7">
+      <div class="task-header">
+        <div class="task-num-badge">7</div>
+        <div class="task-title-block">
+          <h2>To-Do list</h2>
+          <p>Massiivid, DOM-elementide loomine, localStorage</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="todo-input-row">
+          <input type="text" id="todoInput" placeholder="Lisa uus ülesanne…" onkeydown="if(event.key==='Enter')lisaUlesanne()" />
+          <button class="btn" onclick="lisaUlesanne()">+ Lisa</button>
+        </div>
+        <div class="todo-list" id="todoList"></div>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted);" id="todoStats"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 8 ─── -->
+    <section class="task" id="task8">
+      <div class="task-header">
+        <div class="task-num-badge">8</div>
+        <div class="task-title-block">
+          <h2>JSON-andmete kuvamine</h2>
+          <p>Andmestruktuurid, massiivid, objektid, tabeli genereerimine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn btn-sm" onclick="kuvaKõik()">Kõik õpilased</button>
+          <button class="btn btn-sm btn-ghost" onclick="kuvaHead()">Hinne ≥ 4</button>
+        </div>
+        <div id="t8table"></div>
+        <div id="t8avg" style="margin-top:14px;font-size:13px;color:var(--muted);"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 9 ─── -->
+    <section class="task" id="task9">
+      <div class="task-header">
+        <div class="task-num-badge">9</div>
+        <div class="task-title-block">
+          <h2>Mini-ilmarakendus</h2>
+          <p>JSON, valikukast, andmete filtreerimine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="field">
+          <label>Vali linn</label>
+          <select id="citySelect" onchange="kuvaIlm()">
+            <option value="">— Vali linn —</option>
+          </select>
+        </div>
+        <div class="weather-card" id="weatherCard">
+          <div class="weather-icon" id="w_icon"></div>
+          <div class="weather-temp" id="w_temp"></div>
+          <div class="weather-cond" id="w_cond"></div>
+          <div class="weather-city" id="w_city"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 10 ─── -->
+    <section class="task" id="task10">
+      <div class="task-header">
+        <div class="task-num-badge">10</div>
+        <div class="task-title-block">
+          <h2>AJAX-andmete laadimine</h2>
+          <p>fetch(), asünkroonne andmete laadimine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="btn btn-sm" onclick="laadAndmed('tooted')">📦 Tooted</button>
+          <button class="btn btn-sm btn-ghost" onclick="laadAndmed('kasutajad')">👤 Kasutajad</button>
+          <button class="btn btn-sm btn-ghost" onclick="laadAndmed('raamatud')">📚 Raamatud</button>
+        </div>
+        <div id="t10loading" style="color:var(--muted);font-size:13px;display:none;">⏳ Laadin andmeid…</div>
+        <div id="t10result"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 11 ─── -->
+    <section class="task" id="task11">
+      <div class="task-header">
+        <div class="task-num-badge">11</div>
+        <div class="task-title-block">
+          <h2>Otsing ja filtreerimine</h2>
+          <p>filter(), sort(), sisendi jälgimine</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="search-controls">
+          <input type="text" id="searchInput" placeholder="🔍 Otsi filmi…" oninput="filtreeri()" />
+          <select id="genreFilter" onchange="filtreeri()">
+            <option value="">Kõik žanrid</option>
+            <option>Draama</option>
+            <option>Komöödia</option>
+            <option>Thriller</option>
+            <option>Ulme</option>
+            <option>Animatsioon</option>
+          </select>
+          <select id="sortBy" onchange="filtreeri()">
+            <option value="name">Sordi nime järgi</option>
+            <option value="rating">Sordi hinde järgi</option>
+          </select>
+        </div>
+        <div class="film-list" id="filmList"></div>
+        <div id="filmCount" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 12 ─── -->
+    <section class="task" id="task12">
+      <div class="task-header">
+        <div class="task-num-badge">12</div>
+        <div class="task-title-block">
+          <h2>jQuery võrdlusülesanne</h2>
+          <p>Tavaline JS vs jQuery – sama funktsioon kahel moel</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="compare-grid">
+          <div class="compare-panel">
+            <h3>🍦 Tavaline <span>JavaScript</span></h3>
+            <div id="vanilla-box">See tekst peidetakse ja näidatakse tavalise JavaScriptiga.</div>
+            <button class="btn btn-sm btn-ghost" onclick="vanillaPeida()">Peida</button>
+            <button class="btn btn-sm" onclick="vanillaKuva()" style="margin-left:8px;">Kuva</button>
+            <div class="code-snippet">
+              document.getElementById('box').<br>
+              &nbsp;&nbsp;style.display = 'none';<br>
+              <br>
+              // Fade efekt:<br>
+              el.style.transition = 'opacity .3s';<br>
+              el.style.opacity = '0';
+            </div>
+          </div>
+          <div class="compare-panel">
+            <h3>💎 <span>jQuery</span></h3>
+            <div id="jquery-box">See tekst peidetakse ja näidatakse jQueryga.</div>
+            <button class="btn btn-sm btn-ghost" onclick="jqPeida()">Peida</button>
+            <button class="btn btn-sm" onclick="jqKuva()" style="margin-left:8px;">Kuva</button>
+            <div class="code-snippet">
+              $('#box').hide();<br>
+              $('#box').show();<br>
+              <br>
+              // Animatsiooniga:<br>
+              $('#box').fadeOut(300);<br>
+              $('#box').fadeIn(300);
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ÜLESANNE 13 ─── -->
+    <section class="task" id="task13">
+      <div class="task-header">
+        <div class="task-num-badge">13</div>
+        <div class="task-title-block">
+          <h2>Lõpuülesanne: Õpilaste hinnete haldur</h2>
+          <p>JSON + localStorage + fetch + otsing + statistika</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="tab-bar">
+          <div class="tab active" onclick="switchTab('loetelud')">📋 Õpilased</div>
+          <div class="tab" onclick="switchTab('lisa')">➕ Lisa</div>
+          <div class="tab" onclick="switchTab('statistika')">📊 Statistika</div>
+        </div>
+
+        <!-- Tab: Loetelu -->
+        <div class="tab-pane active" id="tab_loetelud">
+          <div style="margin-bottom:14px;">
+            <input type="text" id="finalSearch" placeholder="🔍 Otsi õpilast…" oninput="renderFinal()" />
+          </div>
+          <div id="finalList"></div>
+        </div>
+
+        <!-- Tab: Lisa -->
+        <div class="tab-pane" id="tab_lisa">
+          <div class="field"><label>Õpilase nimi</label><input type="text" id="f_nimi" placeholder="Näiteks: Peeter Paan" /></div>
+          <div class="field"><label>Aine</label><input type="text" id="f_aine" placeholder="Näiteks: Matemaatika" /></div>
+          <div class="field">
+            <label>Hinne</label>
+            <select id="f_hinne">
+              <option value="5">5 – Väga hea</option>
+              <option value="4">4 – Hea</option>
+              <option value="3" selected>3 – Rahuldav</option>
+              <option value="2">2 – Puudulik</option>
+            </select>
+          </div>
+          <button class="btn" onclick="lisaOpilane()">+ Lisa õpilane</button>
+          <div class="result" id="finalMsg"></div>
+        </div>
+
+        <!-- Tab: Statistika -->
+        <div class="tab-pane" id="tab_statistika">
+          <div class="stat-row" id="statRow"></div>
+          <div id="gradeChart" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- jQuery CDN (ülesanne 12 jaoks) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script>
+// ══════════════════════════════════════
+// NAVIGATSIOON
+// ══════════════════════════════════════
+const tasks = [
+  { id: 1, title: 'Tere, JavaScript!' },
+  { id: 2, title: 'Kalkulaator' },
+  { id: 3, title: 'Parooli kontrollija' },
+  { id: 4, title: 'Registreerimisvorm' },
+  { id: 5, title: 'Pildigalerii' },
+  { id: 6, title: 'Kujunduse muutja' },
+  { id: 7, title: 'To-Do list' },
+  { id: 8, title: 'JSON-andmed' },
+  { id: 9, title: 'Ilmarakendus' },
+  { id: 10, title: 'AJAX andmelaadimine' },
+  { id: 11, title: 'Otsing & filtreerimine' },
+  { id: 12, title: 'jQuery võrdlus' },
+  { id: 13, title: 'Lõpuülesanne' },
+];
+
+const nav = document.getElementById('sidebarNav');
+tasks.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'nav-item' + (t.id === 1 ? ' active' : '');
+  el.setAttribute('data-id', t.id);
+  el.innerHTML = `<span class="nav-num">${t.id}</span>${t.title}`;
+  el.onclick = () => showTask(t.id);
+  nav.appendChild(el);
+});
+
+function showTask(id) {
+  document.querySelectorAll('.task').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('task' + id).classList.add('active');
+  document.querySelector(`.nav-item[data-id="${id}"]`).classList.add('active');
+  if (id === 7) renderTodo();
+  if (id === 8) kuvaKõik();
+  if (id === 9) initIlm();
+  if (id === 11) filtreeri();
+  if (id === 13) renderFinal();
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 1 – Tervitaja
+// ══════════════════════════════════════
+function tervita() {
+  const nimi = document.getElementById('t1name').value.trim();
+  const result = document.getElementById('t1result');
+  if (!nimi) {
+    result.className = 'result show err';
+    result.textContent = '⚠️ Palun sisesta oma nimi!';
+    return;
+  }
+  result.className = 'result show ok';
+  result.textContent = `👋 Tere, ${nimi}!`;
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 2 – Kalkulaator
+// ══════════════════════════════════════
+function arvuta() {
+  const a = Number(document.getElementById('t2a').value);
+  const b = Number(document.getElementById('t2b').value);
+  const op = document.getElementById('t2op').value;
+  const result = document.getElementById('t2result');
+
+  // Veakontroll: jagamine nulliga
+  if (op === '/' && b === 0) {
+    result.className = 'result show err';
+    result.textContent = '❌ Viga: nulliga jagamine ei ole lubatud!';
+    return;
+  }
+
+  let vastus;
+  if (op === '+') vastus = a + b;
+  else if (op === '-') vastus = a - b;
+  else if (op === '*') vastus = a * b;
+  else vastus = a / b;
+
+  // Ümardame 6 kohani et vältida ujukomaarve vigu
+  vastus = Math.round(vastus * 1_000_000) / 1_000_000;
+
+  result.className = 'result show ok';
+  result.textContent = `${a} ${op} ${b} = ${vastus}`;
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 3 – Parooli tugevus
+// ══════════════════════════════════════
+function kontrolliParool() {
+  const parool = document.getElementById('t3pass').value;
+
+  const kontrollid = {
+    c_len:     parool.length >= 8,
+    c_num:     /[0-9]/.test(parool),
+    c_upper:   /[A-ZÄÖÜ]/.test(parool),
+    c_special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(parool),
+  };
+
+  // Uuenda visuaalseid märke
+  Object.entries(kontrollid).forEach(([id, ok]) => {
+    const el = document.getElementById(id);
+    el.className = 'check-item' + (ok ? ' pass' : '');
+    el.querySelector('.check-icon').textContent = ok ? '✓' : '○';
+  });
+
+  const score = Object.values(kontrollid).filter(Boolean).length;
+  const bar = document.getElementById('t3bar');
+  const result = document.getElementById('t3result');
+
+  if (!parool) {
+    bar.style.width = '0'; result.className = 'result show info';
+    result.textContent = 'Kirjuta parool, et näha tugevust.'; return;
+  }
+
+  if (score <= 1) {
+    bar.style.width = '25%'; bar.style.background = '#f87171';
+    result.className = 'result show err'; result.textContent = '🔴 Parool on NÕRK';
+  } else if (score <= 2) {
+    bar.style.width = '55%'; bar.style.background = '#fbbf24';
+    result.className = 'result show warn'; result.textContent = '🟡 Parool on KESKMINE';
+  } else if (score === 3) {
+    bar.style.width = '80%'; bar.style.background = '#818cf8';
+    result.className = 'result show info'; result.textContent = '🔵 Parool on HEA';
+  } else {
+    bar.style.width = '100%'; bar.style.background = '#4ade80';
+    result.className = 'result show ok'; result.textContent = '🟢 Parool on TUGEV!';
+  }
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 4 – Registreerimisvorm
+// ══════════════════════════════════════
+function registreeri() {
+  const nimi = document.getElementById('r_nimi').value.trim();
+  const vanus = Number(document.getElementById('r_vanus').value);
+  const email = document.getElementById('r_email').value.trim();
+  const parool = document.getElementById('r_parool').value;
+  const parool2 = document.getElementById('r_parool2').value;
+  const result = document.getElementById('t4result');
+
+  // Kontrolli: kõik väljad täidetud
+  if (!nimi || !vanus || !email || !parool || !parool2) {
+    result.className = 'result show err';
+    result.textContent = '⚠️ Kõik väljad peavad olema täidetud!'; return;
+  }
+  // Kontrolli: e-posti formaat
+  if (!email.includes('@')) {
+    result.className = 'result show err';
+    result.textContent = '⚠️ E-posti aadress peab sisaldama @-märki!'; return;
+  }
+  // Kontrolli: vanus
+  if (vanus < 13) {
+    result.className = 'result show err';
+    result.textContent = '⚠️ Peab olema vähemalt 13 aastat vana!'; return;
+  }
+  // Kontrolli: paroolide kattuvus
+  if (parool !== parool2) {
+    result.className = 'result show err';
+    result.textContent = '⚠️ Paroolid ei kattu!'; return;
+  }
+
+  result.className = 'result show ok';
+  result.textContent = `✅ Registreerimine õnnestus! Tere tulemast, ${nimi}!`;
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 5 – Galerii
+// ══════════════════════════════════════
+const pildid = [
+  { emoji: '🌄', pealkiri: 'Mägivaade' },
+  { emoji: '🏖️', pealkiri: 'Rannapuhkus' },
+  { emoji: '🌲', pealkiri: 'Mets' },
+  { emoji: '🌌', pealkiri: 'Öövaatlus' },
+  { emoji: '🏙️', pealkiri: 'Linn' },
+  { emoji: '🌸', pealkiri: 'Kevad' },
+];
+
+let aktiivneIndex = 0;
+
+function initGalerii() {
+  const thumbs = document.getElementById('thumbs');
+  thumbs.innerHTML = '';
+  pildid.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'thumb' + (i === 0 ? ' active' : '');
+    el.textContent = p.emoji;
+    el.onclick = () => valiPilt(i);
+    thumbs.appendChild(el);
+  });
+}
+
+function valiPilt(index) {
+  aktiivneIndex = index;
+  document.getElementById('mainImg').textContent = pildid[index].emoji;
+  document.getElementById('imgCaption').textContent = pildid[index].pealkiri;
+  document.querySelectorAll('.thumb').forEach((el, i) => {
+    el.className = 'thumb' + (i === index ? ' active' : '');
+  });
+}
+
+function nextPilt() { valiPilt((aktiivneIndex + 1) % pildid.length); }
+function prevPilt() { valiPilt((aktiivneIndex - 1 + pildid.length) % pildid.length); }
+
+initGalerii();
+
+// ══════════════════════════════════════
+// ÜLESANNE 6 – Kujunduse muutja
+// ══════════════════════════════════════
+const värvid = ['#7c6eff', '#ff6eb4', '#4ade80', '#fbbf24', '#38bdf8', '#f87171'];
+const colorRow = document.getElementById('colorRow');
+let valitudVärv = localStorage.getItem('bgColor') || '#7c6eff';
+
+värvid.forEach(v => {
+  const el = document.createElement('div');
+  el.className = 'color-swatch' + (v === valitudVärv ? ' selected' : '');
+  el.style.background = v;
+  el.onclick = () => seaBgColor(v);
+  colorRow.appendChild(el);
+});
+
+function setTheme(mode) {
+  document.body.classList.toggle('light', mode === 'light');
+  document.getElementById('tb_dark').className = 'theme-btn' + (mode === 'dark' ? ' selected' : '');
+  document.getElementById('tb_light').className = 'theme-btn' + (mode === 'light' ? ' selected' : '');
+  localStorage.setItem('theme', mode);
+  uuendaStatus();
+}
+
+function seaBgColor(värv) {
+  valitudVärv = värv;
+  document.querySelectorAll('.color-swatch').forEach(el => {
+    el.className = 'color-swatch' + (el.style.background === värv ? ' selected' : '');
+  });
+  document.documentElement.style.setProperty('--accent', värv);
+  localStorage.setItem('bgColor', värv);
+  uuendaStatus();
+}
+
+function setFontSize(suurus) {
+  document.body.style.fontSize = suurus + 'px';
+  document.getElementById('fontSizeLabel').textContent = suurus + 'px';
+  localStorage.setItem('fontSize', suurus);
+  uuendaStatus();
+}
+
+function uuendaStatus() {
+  document.getElementById('t6status').textContent =
+    `✓ Salvestatud: kujundus=${localStorage.getItem('theme')||'dark'}, ` +
+    `suurus=${localStorage.getItem('fontSize')||14}px`;
+}
+
+// Laadi salvestatud seaded
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) setTheme(savedTheme);
+const savedFont = localStorage.getItem('fontSize');
+if (savedFont) {
+  document.getElementById('fontSlider').value = savedFont;
+  setFontSize(savedFont);
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 7 – To-Do list
+// ══════════════════════════════════════
+let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+
+function lisaUlesanne() {
+  const input = document.getElementById('todoInput');
+  const tekst = input.value.trim();
+  if (!tekst) return;
+  todos.push({ tekst, tehtud: false, id: Date.now() });
+  input.value = '';
+  salvestaTodos();
+  renderTodo();
+}
+
+function toggleTodo(id) {
+  todos = todos.map(t => t.id === id ? { ...t, tehtud: !t.tehtud } : t);
+  salvestaTodos(); renderTodo();
+}
+
+function kustutaTodo(id) {
+  todos = todos.filter(t => t.id !== id);
+  salvestaTodos(); renderTodo();
+}
+
+function salvestaTodos() {
+  localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+function renderTodo() {
+  const list = document.getElementById('todoList');
+  const stats = document.getElementById('todoStats');
+  list.innerHTML = '';
+  if (!todos.length) {
+    list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Pole ülesandeid. Lisa esimene! 👆</div>';
+  }
+  todos.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'todo-item' + (t.tehtud ? ' done' : '');
+    el.innerHTML = `
+      <span class="todo-check" onclick="toggleTodo(${t.id})">${t.tehtud ? '✅' : '⬜'}</span>
+      <span class="todo-text">${t.tekst}</span>
+      <button class="todo-del" onclick="kustutaTodo(${t.id})">🗑</button>
+    `;
+    list.appendChild(el);
+  });
+  const tehtud = todos.filter(t => t.tehtud).length;
+  stats.textContent = `${tehtud}/${todos.length} ülesannet tehtud · Salvestatud localStorage-isse`;
+}
+
+renderTodo();
+
+// ══════════════════════════════════════
+// ÜLESANNE 8 – JSON andmed
+// ══════════════════════════════════════
+const opilased = [
+  { nimi: 'Mari Maasikas',  hinne: 5 },
+  { nimi: 'Jüri Juurikas',  hinne: 3 },
+  { nimi: 'Kati Kask',      hinne: 4 },
+  { nimi: 'Peeter Paan',    hinne: 5 },
+  { nimi: 'Liisa Loodus',   hinne: 4 },
+  { nimi: 'Toomas Tamm',    hinne: 2 },
+  { nimi: 'Anna Aas',       hinne: 3 },
+];
+
+function renderTabel(nimekiri) {
+  const container = document.getElementById('t8table');
+  const avg = (nimekiri.reduce((s, o) => s + o.hinne, 0) / nimekiri.length).toFixed(2);
+
+  container.innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>Nimi</th><th>Hinne</th></tr></thead>
+      <tbody>
+        ${nimekiri.map((o, i) => `
+          <tr>
+            <td style="color:var(--muted)">${i + 1}</td>
+            <td>${o.nimi}</td>
+            <td><span class="badge badge-${o.hinne}">${o.hinne}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('t8avg').textContent =
+    `Keskmine hinne: ${avg} · ${nimekiri.length} õpilast`;
+}
+
+function kuvaKõik() { renderTabel(opilased); }
+function kuvaHead() { renderTabel(opilased.filter(o => o.hinne >= 4)); }
+
+// ══════════════════════════════════════
+// ÜLESANNE 9 – Ilmarakendus
+// ══════════════════════════════════════
+const ilmaAndmed = [
+  { linn: 'Tallinn',   temp: 1,  seisund: 'Lumine',   icon: '🌨️' },
+  { linn: 'Tõrva',     temp: -2, seisund: 'Pilves',   icon: '☁️' },
+  { linn: 'Tartu',     temp: 3,  seisund: 'Vihmane',  icon: '🌧️' },
+  { linn: 'Pärnu',     temp: 5,  seisund: 'Päikseline', icon: '☀️' },
+  { linn: 'Narva',     temp: -4, seisund: 'Külm',     icon: '🥶' },
+  { linn: 'Haapsalu',  temp: 2,  seisund: 'Udune',    icon: '🌫️' },
+];
+
+function initIlm() {
+  const sel = document.getElementById('citySelect');
+  if (sel.options.length > 1) return;
+  ilmaAndmed.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.linn; opt.textContent = d.linn;
+    sel.appendChild(opt);
+  });
+}
+
+function kuvaIlm() {
+  const valik = document.getElementById('citySelect').value;
+  const card = document.getElementById('weatherCard');
+  if (!valik) { card.classList.remove('show'); return; }
+
+  const andmed = ilmaAndmed.find(d => d.linn === valik);
+  document.getElementById('w_icon').textContent = andmed.icon;
+  document.getElementById('w_temp').textContent = andmed.temp + '°C';
+  document.getElementById('w_cond').textContent = andmed.seisund;
+  document.getElementById('w_city').textContent = andmed.linn + ', Eesti';
+  card.classList.add('show');
+}
+
+initIlm();
+
+// ══════════════════════════════════════
+// ÜLESANNE 10 – AJAX andmelaadimine
+// ══════════════════════════════════════
+
+// Simuleeritud JSON "server" – päris projektis oleks see eraldi data.json fail
+const mockData = {
+  tooted: [
+    { nimi: 'Sülearvuti',  kate: 'Elektroonika', hind: '899€', icon: '💻' },
+    { nimi: 'Nutitelefon', kate: 'Elektroonika', hind: '599€', icon: '📱' },
+    { nimi: 'Kõrvaklapid', kate: 'Audio',        hind: '149€', icon: '🎧' },
+    { nimi: 'Klaviatuur',  kate: 'Aksessuaarid', hind: '89€',  icon: '⌨️' },
+    { nimi: 'Monitor',     kate: 'Elektroonika', hind: '349€', icon: '🖥️' },
+    { nimi: 'Hiir',        kate: 'Aksessuaarid', hind: '49€',  icon: '🖱️' },
+  ],
+  kasutajad: [
+    { nimi: 'Mari',   roll: 'Admin',    email: 'mari@näide.ee' },
+    { nimi: 'Jüri',   roll: 'Kasutaja', email: 'jyri@näide.ee' },
+    { nimi: 'Kati',   roll: 'Moderaator', email: 'kati@näide.ee' },
+    { nimi: 'Peeter', roll: 'Kasutaja', email: 'peeter@näide.ee' },
+  ],
+  raamatud: [
+    { pealkiri: 'Tõde ja õigus',  autor: 'A. H. Tammsaare', aasta: 1926 },
+    { pealkiri: 'Kevade',         autor: 'Oskar Luts',       aasta: 1912 },
+    { pealkiri: 'Rehepapp',       autor: 'Andrus Kivirähk',  aasta: 2000 },
+    { pealkiri: 'Mees, kes teadis ussisõnu', autor: 'A. Kivirähk', aasta: 2007 },
+  ],
+};
+
+async function laadAndmed(tüüp) {
+  const loading = document.getElementById('t10loading');
+  const result  = document.getElementById('t10result');
+
+  loading.style.display = 'block';
+  result.innerHTML = '';
+
+  // Simuleerime fetch() viivitust (nagu päris serverist laadides)
+  await new Promise(res => setTimeout(res, 600));
+
+  const andmed = mockData[tüüp];
+  loading.style.display = 'none';
+
+  if (tüüp === 'tooted') {
+    result.innerHTML = `<div class="product-grid">${andmed.map(t => `
+      <div class="product-card">
+        <div class="product-icon">${t.icon}</div>
+        <div class="product-name">${t.nimi}</div>
+        <div class="product-cat">${t.kate}</div>
+        <div class="product-price">${t.hind}</div>
+      </div>`).join('')}</div>`;
+  } else if (tüüp === 'kasutajad') {
+    result.innerHTML = `<table>
+      <thead><tr><th>Nimi</th><th>Roll</th><th>E-post</th></tr></thead>
+      <tbody>${andmed.map(u => `
+        <tr><td>${u.nimi}</td><td><span class="badge badge-4">${u.roll}</span></td><td>${u.email}</td></tr>
+      `).join('')}</tbody>
+    </table>`;
+  } else {
+    result.innerHTML = `<table>
+      <thead><tr><th>Pealkiri</th><th>Autor</th><th>Aasta</th></tr></thead>
+      <tbody>${andmed.map(r => `
+        <tr><td>${r.pealkiri}</td><td>${r.autor}</td><td>${r.aasta}</td></tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 11 – Otsing ja filtreerimine
+// ══════════════════════════════════════
+const filmid = [
+  { nimi: 'Inception',         žanr: 'Thriller',     hinne: 8.8 },
+  { nimi: 'The Lion King',     žanr: 'Animatsioon',  hinne: 8.5 },
+  { nimi: 'Schindler\'s List', žanr: 'Draama',       hinne: 9.0 },
+  { nimi: 'Superbad',          žanr: 'Komöödia',     hinne: 7.6 },
+  { nimi: 'Interstellar',      žanr: 'Ulme',         hinne: 8.6 },
+  { nimi: 'The Dark Knight',   žanr: 'Thriller',     hinne: 9.0 },
+  { nimi: 'Forrest Gump',      žanr: 'Draama',       hinne: 8.8 },
+  { nimi: 'Toy Story',         žanr: 'Animatsioon',  hinne: 8.3 },
+  { nimi: 'The Hangover',      žanr: 'Komöödia',     hinne: 7.7 },
+  { nimi: 'Avatar',            žanr: 'Ulme',         hinne: 7.8 },
+];
+
+function filtreeri() {
+  const otsing = document.getElementById('searchInput').value.toLowerCase();
+  const žanr   = document.getElementById('genreFilter').value;
+  const sortBy = document.getElementById('sortBy').value;
+
+  let nimekiri = filmid
+    .filter(f => f.nimi.toLowerCase().includes(otsing))
+    .filter(f => !žanr || f.žanr === žanr);
+
+  if (sortBy === 'name')   nimekiri.sort((a, b) => a.nimi.localeCompare(b.nimi));
+  if (sortBy === 'rating') nimekiri.sort((a, b) => b.hinne - a.hinne);
+
+  const list = document.getElementById('filmList');
+  list.innerHTML = nimekiri.length ? nimekiri.map(f => `
+    <div class="film-item">
+      <div>
+        <div class="film-name">${f.nimi}</div>
+        <div class="film-cat">${f.žanr}</div>
+      </div>
+      <div class="film-meta">
+        <div class="film-rating">⭐ ${f.hinne}</div>
+      </div>
+    </div>`).join('')
+    : '<div class="no-results">🔍 Tulemusi ei leitud</div>';
+
+  document.getElementById('filmCount').textContent =
+    `${nimekiri.length} filmi ${filmid.length}-st`;
+}
+
+// ══════════════════════════════════════
+// ÜLESANNE 12 – jQuery võrdlus
+// ══════════════════════════════════════
+function vanillaPeida() {
+  const el = document.getElementById('vanilla-box');
+  el.style.transition = 'opacity .3s';
+  el.style.opacity = '0';
+  setTimeout(() => el.style.display = 'none', 300);
+}
+function vanillaKuva() {
+  const el = document.getElementById('vanilla-box');
+  el.style.display = 'block';
+  setTimeout(() => el.style.opacity = '1', 10);
+}
+function jqPeida() { $('#jquery-box').fadeOut(300); }
+function jqKuva()  { $('#jquery-box').fadeIn(300); }
+
+// ══════════════════════════════════════
+// ÜLESANNE 13 – Lõpuülesanne
+// ══════════════════════════════════════
+let opilasedFinal = JSON.parse(localStorage.getItem('finalStudents') || 'null') || [
+  { nimi: 'Mari Maasikas',  aine: 'Matemaatika', hinne: 5, id: 1 },
+  { nimi: 'Jüri Juurikas',  aine: 'Eesti keel',  hinne: 3, id: 2 },
+  { nimi: 'Kati Kask',      aine: 'Inglise keel',hinne: 4, id: 3 },
+  { nimi: 'Peeter Paan',    aine: 'Füüsika',     hinne: 5, id: 4 },
+  { nimi: 'Liisa Loodus',   aine: 'Keemia',      hinne: 4, id: 5 },
+];
+
+function salvestaFinal() {
+  localStorage.setItem('finalStudents', JSON.stringify(opilasedFinal));
+}
+
+function lisaOpilane() {
+  const nimi   = document.getElementById('f_nimi').value.trim();
+  const aine   = document.getElementById('f_aine').value.trim();
+  const hinne  = Number(document.getElementById('f_hinne').value);
+  const msg    = document.getElementById('finalMsg');
+
+  if (!nimi || !aine) {
+    msg.className = 'result show err';
+    msg.textContent = '⚠️ Nimi ja aine peavad olema täidetud!'; return;
+  }
+
+  opilasedFinal.push({ nimi, aine, hinne, id: Date.now() });
+  salvestaFinal();
+  renderFinal();
+  msg.className = 'result show ok';
+  msg.textContent = `✅ ${nimi} lisatud!`;
+  document.getElementById('f_nimi').value = '';
+  document.getElementById('f_aine').value = '';
+}
+
+function kustutaFinal(id) {
+  opilasedFinal = opilasedFinal.filter(o => o.id !== id);
+  salvestaFinal(); renderFinal();
+}
+
+function renderFinal() {
+  const otsing = (document.getElementById('finalSearch')?.value || '').toLowerCase();
+  const nimekiri = opilasedFinal.filter(o => o.nimi.toLowerCase().includes(otsing));
+  const list = document.getElementById('finalList');
+
+  list.innerHTML = nimekiri.map(o => `
+    <div class="student-row">
+      <div class="student-avatar">${o.nimi[0]}</div>
+      <div class="student-name">${o.nimi}<div style="font-size:11px;color:var(--muted);font-weight:400">${o.aine}</div></div>
+      <span class="grade-badge g${o.hinne}">${o.hinne}</span>
+      <button class="todo-del" onclick="kustutaFinal(${o.id})">🗑</button>
+    </div>`).join('') || '<div style="color:var(--muted);padding:16px">Ei leitud.</div>';
+
+  renderStatistika();
+}
+
+function renderStatistika() {
+  const avg = (opilasedFinal.reduce((s, o) => s + o.hinne, 0) / opilasedFinal.length).toFixed(2);
+  const positiivsed = opilasedFinal.filter(o => o.hinne >= 3).length;
+  const row = document.getElementById('statRow');
+  row.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${opilasedFinal.length}</div><div class="stat-label">Õpilast</div></div>
+    <div class="stat-card"><div class="stat-val">${avg}</div><div class="stat-label">Keskmine</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${positiivsed}</div><div class="stat-label">Positiivsed</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--red)">${opilasedFinal.length - positiivsed}</div><div class="stat-label">Puudulikud</div></div>
+  `;
+
+  // Lihtsad hinderibad
+  const grades = [5,4,3,2];
+  const chart = document.getElementById('gradeChart');
+  chart.innerHTML = grades.map(g => {
+    const arv = opilasedFinal.filter(o => o.hinne === g).length;
+    const protsent = opilasedFinal.length ? Math.round(arv / opilasedFinal.length * 100) : 0;
+    const värv = g===5 ? '#4ade80' : g===4 ? '#fbbf24' : g===3 ? '#818cf8' : '#f87171';
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:20px;color:var(--muted);font-size:12px;text-align:right">${g}</div>
+      <div style="flex:1;background:var(--border);border-radius:4px;height:22px;overflow:hidden">
+        <div style="width:${protsent}%;background:${värv};height:100%;border-radius:4px;
+          display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:#000;
+          transition:width .5s">${arv ? arv + ' õpilast' : ''}</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);width:30px">${protsent}%</div>
+    </div>`;
+  }).join('');
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.className = 'tab' + (el.onclick.toString().includes(id) ? ' active' : '');
+  });
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab_' + id).classList.add('active');
+  if (id === 'statistika') renderStatistika();
+}
+
+// ══════════════════════════════════════
+// LAADIMINE – koosta kõik tab-id õigesti
+// ══════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab => {
+  const orig = tab.getAttribute('onclick');
+  // (lihtsalt veendume, et tabid töötavad; switchTab kasutab id parameetrit)
+});
+</script>
+</body>
+</html>
